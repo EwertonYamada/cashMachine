@@ -38,9 +38,11 @@ public class AgencyService {
     }
 
     public Agency getAgencyById(Long id) {
-        return this.agencyRepository.findById(id).orElseThrow(() ->{
+        try {
+            return this.agencyRepository.findById(id).get();
+        } catch (Exception e) {
             throw new RuntimeException("Agência não encontrada!");
-        });
+        }
     }
 
     public List<Agency> getAllAgencies(Pageable pageable) {

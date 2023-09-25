@@ -49,9 +49,11 @@ public class BankService {
     }
 
     public Bank findBankById(Long id) {
-        return this.bankRepository.findById(id).orElseThrow(() -> {
+        try {
+            return this.bankRepository.findById(id).get();
+        } catch (Exception e) {
             throw new RuntimeException("Banco não encontrado");
-        });
+        }
     }
 
     public void deleteBank(Long id) {

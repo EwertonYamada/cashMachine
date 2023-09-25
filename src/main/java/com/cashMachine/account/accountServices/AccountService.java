@@ -49,9 +49,11 @@ public class AccountService {
     }
 
     public Account getAccountById(Long id) {
-        return this.accountRepository.findById(id).orElseThrow(() -> {
+        try {
+            return this.accountRepository.findById(id).get();
+        } catch (Exception e) {
             throw new RuntimeException("Conta ID: ".concat(id.toString()).concat(" não encontrada!"));
-        });
+        }
     }
 
     public List<Account> getAllAccounts(Pageable pageable) {

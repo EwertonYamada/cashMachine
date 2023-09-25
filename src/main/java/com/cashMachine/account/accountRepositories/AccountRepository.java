@@ -37,7 +37,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query(nativeQuery = true,
             value = "SELECT b.full_balance_transaction" +
-                    "FROM bank b " +
-                    "")
+                    "FROM bank b " /*+
+                    "WHERE "*/)
     Long getBankIdByAccountId(Long sourceAccount);
 }

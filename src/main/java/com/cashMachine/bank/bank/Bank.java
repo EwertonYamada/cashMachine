@@ -22,8 +22,4 @@ public class Bank {
     @NotNull
     @Column(name = "full_balance_transaction")
     private BigDecimal fullBalanceTransaction;
-
-//    @NotNull
-//    @Column(name = "teste")
-//    private BigDecimal teste;
 }

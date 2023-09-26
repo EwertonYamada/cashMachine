@@ -3,6 +3,7 @@ package com.cashMachine.account.accountServices;
 import com.cashMachine.account.account.Account;
 import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.dtos.AccountDto;
+import com.cashMachine.account.enums.AccountType;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
 import com.cashMachine.transaction.enums.TransactionType;
@@ -28,11 +29,27 @@ public class AccountService {
     public Account createAccount(AccountDto accountDto) {
         this.validateIfAccontNumberExists(accountDto.getAgency(), accountDto.getNumber());
         this.validateIfMemberAlreadyHasAccountInBank(accountDto.getAssociate(), accountDto.getAgency());
+        // validar se o número da conta já existe para algum associado que tenha aquele tipo de conta;
+
+        String saveAccountType =  AccountType.SAVINGS.toString();
+        boolean createTwoAccounts = accountDto.getAccountType().equals(2);
+
+        if(accountDto.getAccountType().equals(0) || createTwoAccounts) {
+            registerAccount(accountDto, saveAccountType);
+        }
+        if(accountDto.getAccountType().equals(1) || createTwoAccounts) {
+            saveAccountType =  AccountType.CHECKING.toString();
+            registerAccount(accountDto, saveAccountType);
+        }
+
+    }
+    public Account registerAccount(AccountDto accountDto, String accountType) {
         Account account = new Account();
         account.setNumber(accountDto.getNumber());
         account.setAssociate(this.associateService.getAssociateById(accountDto.getAssociate()));
         account.setAgency(this.agencyService.getAgencyById(accountDto.getAgency()));
-        account.setBalance(new BigDecimal(0));
+        account.setBalance(BigDecimal.ZERO);
+        account.setAccountType(accountType);
         return this.accountRepository.save(account);
     }
 

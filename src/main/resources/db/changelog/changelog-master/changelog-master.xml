@@ -17,14 +17,30 @@
 <!--        </addColumn>-->
 <!--    </changeSet>-->
 
-    <changeSet id="2" author="carolina.santos@sgisistemas.com.br">
+    <changeSet id="10" author="carolina.santos@sgisistemas.com.br">
     <preConditions onFail="MARK_RAN">
         <not>
             <columnExists columnName="type_account" tableName="account"/>
         </not>
     </preConditions>
     <addColumn tableName="account">
-        <column name="type_account" type="numeric(19, 5)"/>
+        <column name="type_account" type="text"/>
     </addColumn>
+    </changeSet>
+    <changeSet id="24" author="carolina.santos@sgisistemas.com.br">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="t">
+                SELECT
+                    COUNT(*)>0
+                FROM account
+                WHERE type_account is null
+            </sqlCheck>
+        </preConditions>
+        <comment>Atribuição de conta-corrente para registros já existentes</comment>
+        <sql>
+            UPDATE account
+            SET type_account = 'CHECKING'
+            WHERE type_account isnull
+        </sql>
     </changeSet>
 </databaseChangeLog>

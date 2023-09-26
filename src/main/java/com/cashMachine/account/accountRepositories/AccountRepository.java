@@ -16,24 +16,50 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                     "   JOIN agency ag " +
                     "       ON a.agency_id = ag.id " +
                     "   WHERE a.account_number = :accountNumber " +
+                    "       AND a.type_account = :typeAccount " +
                     "       AND ag.bank_id = ( " +
                     "       SELECT bank_id " +
                     "       FROM agency ag2 " +
                     "       WHERE ag2.id = :agencyId) ")
-    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId, @Param("accountNumber") Long accountNumber);
+    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId, @Param("typeAccount") String typeAccount, @Param("accountNumber") Long accountNumber);
 
     @Query(nativeQuery = true,
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM account a " +
                     "   WHERE a.agency_id = :agencyId " +
-                    "       AND a.associate_id = :associateId")
-    boolean countMemberAlreadyHasAccountInBank(Long associateId, Long agencyId);
+                    "       AND a.associate_id = :associateId" +
+                    "       AND a.type_account = :typeAccount ")
+    boolean countMemberAlreadyHasAccountInBank(@Param("associateId") Long associateId,
+                                               @Param("agencyId") Long agencyId,
+                                               @Param("typeAccount") String typeAccount);
 
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +
                     "FROM account a " +
                     "WHERE a.id = :sourceAccountId ")
     BigDecimal getBalance(@Param("sourceAccountId") Long sourceAccountId);
+
+    @Query(nativeQuery = true,
+                 value = " SELECT * " +
+                         " FROM account a " +
+                         " WHERE a.id = :accountId ")
+    Account selectAccountById(@Param("accountId") Long accountId);
+
+    @Query(nativeQuery = true,
+                 value = "SELECT COUNT(*) " +
+                         "FROM account a " +
+                         "WHERE account_number = :accountNumber " +
+                         "AND agency_id = :agencyId ")
+    Long countAccountsByNumberAnAndAgency(@Param("accountNumber") Long accountNumber, @Param("agencyId") Long agencyId);
+
+    @Query(nativeQuery = true,
+                 value = " SELECT * " +
+                         " FROM account " +
+                         " WHERE id != :accountId " +
+                         " AND account_number = (SELECT account_number " +
+                         "          FROM account " +
+                         "          WHERE id = :accountId)")
+    Account selectCheckingAccountBySavingAccount(@Param("accountId") Long accountId);
 
     @Query(nativeQuery = true,
             value = "SELECT b.full_balance_transaction" +

@@ -20,14 +20,16 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                     "       SELECT bank_id " +
                     "       FROM agency ag2 " +
                     "       WHERE ag2.id = :agencyId) ")
-    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId, @Param("accountNumber") Long accountNumber);
+    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId,
+                                     @Param("accountNumber") Long accountNumber);
 
     @Query(nativeQuery = true,
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM account a " +
                     "   WHERE a.agency_id = :agencyId " +
                     "       AND a.associate_id = :associateId")
-    boolean countMemberAlreadyHasAccountInBank(Long associateId, Long agencyId);
+    boolean countMemberAlreadyHasAccountInBank(@Param("associateId") Long associateId,
+                                               @Param("agencyId") Long agencyId);
 
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +

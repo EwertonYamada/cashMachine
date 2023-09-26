@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public class Bank {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
     @NotNull
     @Column(name = "bank_number")

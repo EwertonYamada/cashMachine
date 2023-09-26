@@ -32,15 +32,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                     "WHERE t.source_account = :sourceAccountId " +
                     "   AND t.transaction_type IN('WITHDRAW', 'TRANSFER') " +
                     "   AND t.transaction_date > :currentDate ")
-    BigDecimal getExitTransactions(@Param("sourceAccountId") Long sourceAccountId, @Param("currentDate") Date currentDate);
+    BigDecimal getExitTransactions(@Param("sourceAccountId") Long sourceAccountId,
+                                   @Param("currentDate") Date currentDate);
 
     @Query(nativeQuery = true,
-            value = "SELECT b.full_balance_transaction " +
-                    "FROM bank b " +
-                    "JOIN agency a " +
-                    "   ON a.bank_id = b.id  " +
-                    "JOIN account a2 " +
-                    "   ON a2.agency_id = a.id  " +
-                    "WHERE a2.id = :account ")
+            value = " SELECT b.full_balance_transaction " +
+                    " FROM bank b " +
+                    " JOIN agency a " +
+                    "    ON a.bank_id = b.id  " +
+                    " JOIN account a2 " +
+                    "    ON a2.agency_id = a.id  " +
+                    " WHERE a2.id = :account ")
     BigDecimal getFullBalanceTransactionByAccountId(@Param("account") Long account);
 }

@@ -21,7 +21,7 @@ public class AccountAPI {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<Account> createAccount(@RequestBody AccountDto accountDto) {
+    public ResponseEntity<List<Account>> createAccount(@RequestBody AccountDto accountDto) {
         return ResponseEntity.ok(this.accountService.createAccount(accountDto));
     }
 
@@ -31,8 +31,10 @@ public class AccountAPI {
     }
 
     @GetMapping("/all-accounts")
-    public ResponseEntity<List<Account>> getAllAgencies(@PageableDefault(page = 0, size = 10000, sort = "number",
+    public ResponseEntity<List<Account>> getAllAgencies(@PageableDefault(size = 10000, sort = "number",
             direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(this.accountService.getAllAccounts(pageable));
     }
+
+
 }

@@ -37,14 +37,15 @@ public class BankService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bank> getAllBanks(Pageable pageable) {
-        return this.bankRepository.findAll((Sort) pageable);
+    public List<Bank> getAllBanks() {
+        return this.bankRepository.findAll();
     }
 
     public Bank replaceBank(Bank bank, Long id) {
         Bank bankToBeUpdate = this.findBankById(id);
         bankToBeUpdate.setBankName(bank.getBankName());
         bankToBeUpdate.setBankNumber(bank.getBankNumber());
+        bankToBeUpdate.setFullBalanceTransaction(bank.getFullBalanceTransaction());
         return this.bankRepository.save(bankToBeUpdate);
     }
 
@@ -52,16 +53,19 @@ public class BankService {
         try {
             return this.bankRepository.findById(id).get();
         } catch (Exception e) {
-            throw new RuntimeException("Banco não encontrado");
+            throw new RuntimeException("Banco não encontrado.");
         }
     }
 
     public void deleteBank(Long id) {
+        this.findBankById(id);
         this.checkForOpenAccountsByBankId(id);
         this.bankRepository.deleteById(id);
     }
 
     private void checkForOpenAccountsByBankId(Long bankId) {
-        this.bankRepository.checkForOpenAccountsByBankId(bankId);
+        if(this.bankRepository.checkForOpenAccountsByBankId(bankId)) {
+            throw new RuntimeException("Não é possível cadastrar um banco pois existe alguma conta ligada a ele.");
+        }
     }
 }

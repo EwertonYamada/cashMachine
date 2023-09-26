@@ -7,11 +7,13 @@ import com.cashMachine.account.enums.AccountType;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
 import com.cashMachine.transaction.enums.TransactionType;
+import liquibase.pro.packaged.A;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.awt.print.Pageable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,26 +24,29 @@ public class AccountService {
 
     public AccountService(AccountRepository accountRepository, AssociateService associateService, AgencyService agencyService) {
         this.accountRepository = accountRepository;
-        this.associateService = associateService;
-        this.agencyService = agencyService;
+        this.associateService  = associateService;
+        this.agencyService     = agencyService;
     }
 
-    public Account createAccount(AccountDto accountDto) {
+    public List<Account> createAccount(AccountDto accountDto) {
         this.validateIfAccontNumberExists(accountDto.getAgency(), accountDto.getNumber());
         this.validateIfMemberAlreadyHasAccountInBank(accountDto.getAssociate(), accountDto.getAgency());
         // validar se o número da conta já existe para algum associado que tenha aquele tipo de conta;
 
-        String saveAccountType =  AccountType.SAVINGS.toString();
-        boolean createTwoAccounts = accountDto.getAccountType().equals(2);
+        ArrayList<Account> Accounts = new ArrayList<>();
+
+        String saveAccountType      =  AccountType.SAVINGS.toString();
+        boolean createTwoAccounts   = accountDto.getAccountType().equals(2);
 
         if(accountDto.getAccountType().equals(0) || createTwoAccounts) {
-            registerAccount(accountDto, saveAccountType);
+            Accounts.add(registerAccount(accountDto, saveAccountType));
         }
         if(accountDto.getAccountType().equals(1) || createTwoAccounts) {
             saveAccountType =  AccountType.CHECKING.toString();
-            registerAccount(accountDto, saveAccountType);
+            Accounts.add(registerAccount(accountDto, saveAccountType));
         }
 
+        return Accounts;
     }
     public Account registerAccount(AccountDto accountDto, String accountType) {
         Account account = new Account();

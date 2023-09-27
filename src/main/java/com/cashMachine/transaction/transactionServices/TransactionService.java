@@ -40,6 +40,7 @@ public class TransactionService {
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case RESCUE:
+                this.generalValidations(transactionDto, transactionType);
                 break;
         }
         return this.executeTransaction(transactionType,transactionDto);
@@ -68,6 +69,7 @@ public class TransactionService {
 
         if(transactionType.equals(TransactionType.TRANSFER)){
             this.validateTypeAccount(transactionDto.getSourceAccount());
+            this.validateSourceAccountAndTargetAccount(transactionDto.getSourceAccount(), transactionDto.getTargetAccount());
         }
     }
 
@@ -96,8 +98,8 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setDate(new Date());
         transaction.setValue(new BigDecimal(String.valueOf(transactionDto.getValue())).setScale(2, RoundingMode.HALF_EVEN));
-        if (Objects.nonNull(transactionDto.getTargetAccount()) && (transactionType.equals(TransactionType.DEPOSIT) ||
-                transactionType.equals(TransactionType.TRANSFER))) {
+        if (Objects.nonNull(transactionDto.getTargetAccount()) && ((transactionType.equals(TransactionType.DEPOSIT) ||
+                transactionType.equals(TransactionType.TRANSFER)))) {
             Account targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
             transaction.setTargetAccount(targetAccount);
             this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
@@ -152,6 +154,12 @@ public class TransactionService {
     private void validateTypeAccount(Long accountId){
         if (this.transactionRepository.selectTypeAccount(accountId).contentEquals("SAVING")) {
             throw new RuntimeException("Não é possível realizar transferências a partir de uma conta poupança!");
+        }
+    }
+
+    private void validateSourceAccountAndTargetAccount(Long sourceAccountId, Long targetAccountId){
+        if (Objects.equals(sourceAccountId, targetAccountId)){
+            throw new RuntimeException("Não se pode realizar operações de uma conta para ela mesma!");
         }
     }
 }

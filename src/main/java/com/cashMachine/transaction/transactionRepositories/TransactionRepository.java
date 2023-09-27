@@ -1,8 +1,6 @@
 package com.cashMachine.transaction.transactionRepositories;
 
 import com.cashMachine.transaction.transaction.Transaction;
-import liquibase.pro.packaged.P;
-import liquibase.pro.packaged.Q;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,6 +47,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query(nativeQuery = true,
                  value = " SELECT type_account " +
                          " FROM account a " +
-                         " WHERE account_number = :accountNumber ")
-    String selectTypeAccount(@Param("accountNumber") Long accountNumber);
+                         " WHERE id = :accountId ")
+    String selectTypeAccount(@Param("accountId") Long accountId);
 }

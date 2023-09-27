@@ -5,7 +5,6 @@ import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.dtos.AccountDto;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
-import liquibase.pro.packaged.A;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -39,13 +38,13 @@ public class AccountService {
     }
 
     private void validateIfMemberAlreadyHasAccountInBank(Long associateId, Long agencyId, String typeAccount) {
-        if (this.accountRepository.countMemberAlreadyHasAccountInBank(associateId, agencyId, typeAccount)) {
+        if (this.accountRepository.countMemberAlreadyHasAccountInBank(associateId, agencyId, typeAccount.toUpperCase())) {
             throw new RuntimeException("Associado já possui esse tipo de conta no banco!");
         }
     }
 
     private void validateIfAccountNumberExists(Long agencyId, String typeAccount, Long accountNumber) {
-        if (this.accountRepository.countAccountNumberInBank(agencyId,typeAccount, accountNumber)) {
+        if (this.accountRepository.countAccountNumberInBank(agencyId,typeAccount.toUpperCase(), accountNumber)) {
             throw new RuntimeException("Número de conta já utilizada para esse tipo de conta!");
         }
     }
@@ -110,6 +109,7 @@ public class AccountService {
         account.setAgency(account1.getAgency());
         account.setAssociate(account1.getAssociate());
         account.setTypeAccount(account1.getTypeAccount());
+        account.setBalance(new BigDecimal(0));
 
         if(account.getTypeAccount().contentEquals("CHECKING")){
             account.setTypeAccount("SAVING");

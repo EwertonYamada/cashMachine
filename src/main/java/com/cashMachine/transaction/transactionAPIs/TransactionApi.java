@@ -1,6 +1,5 @@
 package com.cashMachine.transaction.transactionAPIs;
 
-
 import com.cashMachine.transaction.TransactionDto;
 import com.cashMachine.transaction.enums.TransactionType;
 import com.cashMachine.transaction.transaction.Transaction;
@@ -12,9 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.awt.print.Pageable;
 import java.util.List;
+
 @RestController
 @RequestMapping("/transaction")
-public class TransactionApi {
+public class  TransactionApi {
     private final TransactionService transactionService;
 
     public TransactionApi(TransactionService transactionService) {
@@ -36,15 +36,19 @@ public class TransactionApi {
         return ResponseEntity.ok(this.transactionService.newTransction(transactionDto, TransactionType.TRANSFER));
     }
 
+    @PostMapping("/rescue")
+    public ResponseEntity<Transaction> executeRescue(@RequestBody TransactionDto transactionDto) {
+        return ResponseEntity.ok(this.transactionService.newTransction(transactionDto, TransactionType.RESCUE));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Transaction> getTransctionById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(this.transactionService.getTransctionById(id));
     }
 
     @GetMapping("/all-transactions")
-    public ResponseEntity<List<Transaction>> getAllTransctions(@PageableDefault(page = 0, size = 10000, sort = "number",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.transactionService.getAllTransctions(pageable));
+    public ResponseEntity<List<Transaction>> getAllTransctions() {
+        return ResponseEntity.ok(this.transactionService.getAllTransctions());
     }
 
 }

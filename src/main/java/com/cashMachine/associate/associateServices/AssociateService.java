@@ -33,7 +33,7 @@ public class AssociateService {
         });
     }
 
-    public List<Associate> getAllAssociates(Pageable pageable) {
-        return this.associateRepository.findAll((Sort) pageable);
+    public List<Associate> getAllAssociates() {
+        return this.associateRepository.findAll();
     }
 }

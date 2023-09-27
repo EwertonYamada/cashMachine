@@ -31,9 +31,8 @@ public class BankAPI {
     }
 
     @GetMapping("/all-banks")
-    public ResponseEntity<List<Bank>> getAllBanks(@PageableDefault(page = 0, size = 10000, sort = "bankName",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.bankService.getAllBanks(pageable));
+    public ResponseEntity<List<Bank>> getAllBanks() {
+        return ResponseEntity.ok(this.bankService.getAllBanks());
     }
 
     @PutMapping("/update/{id}")

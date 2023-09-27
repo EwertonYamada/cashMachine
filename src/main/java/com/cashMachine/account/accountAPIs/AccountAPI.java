@@ -31,8 +31,7 @@ public class AccountAPI {
     }
 
     @GetMapping("/all-accounts")
-    public ResponseEntity<List<Account>> getAllAgencies(@PageableDefault(page = 0, size = 10000, sort = "number",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.accountService.getAllAccounts(pageable));
+    public ResponseEntity<List<Account>> getAllAgencies() {
+        return ResponseEntity.ok(this.accountService.getAllAccounts());
     }
 }

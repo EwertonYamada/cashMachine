@@ -42,9 +42,8 @@ public class TransactionApi {
     }
 
     @GetMapping("/all-transactions")
-    public ResponseEntity<List<Transaction>> getAllTransctions(@PageableDefault(page = 0, size = 10000, sort = "number",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.transactionService.getAllTransctions(pageable));
+    public ResponseEntity<List<Transaction>> getAllTransctions() {
+        return ResponseEntity.ok(this.transactionService.getAllTransctions());
     }
 
 }

@@ -13,24 +13,20 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(nativeQuery = true,
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM account a " +
-                    "   JOIN agency ag " +
-                    "       ON a.agency_id = ag.id " +
-                    "   WHERE a.account_number = :accountNumber " +
-                    "       AND ag.bank_id = ( " +
-                    "       SELECT bank_id " +
-                    "       FROM agency ag2 " +
-                    "       WHERE ag2.id = :agencyId) ")
-    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId,
-                                     @Param("accountNumber") Long accountNumber);
+                    "   WHERE a.associate_id = :associateId " +
+                    "       AND a.account_type = :accountType ")
+    boolean countMemberAlreadyHasAccountInBankWithThisAccountType(@Param("accountNumber") Long associateId,
+                                     @Param("accountType") String accountType);
 
     @Query(nativeQuery = true,
-            value = "   SELECT COUNT(*) > 0 " +
-                    "   FROM account a " +
-                    "   WHERE a.agency_id = :agencyId " +
-                    "       AND a.associate_id = :associateId")
-    boolean countMemberAlreadyHasAccountInBank(@Param("associateId") Long associateId,
-                                               @Param("agencyId") Long agencyId);
-
+            value = "    SELECT COUNT(associate_id) > 0 " +
+                    "    FROM account a " +
+                    "    WHERE  a.account_number = :accountNumber " +
+                    "       AND a.associate_id != :associateId ")
+    boolean validateIfTheAccountNumberIsAlreadyUsedByAMember(@Param("accountNumber") Long accountNumber,
+                                                             @Param("associateId") Long associateId);
+    // Verificar esss duas validações!!!
+    //    whether
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +
                     "FROM account a " +

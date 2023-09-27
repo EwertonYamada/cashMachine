@@ -131,7 +131,7 @@ public class TransactionService {
         }
     }
 
-    public List<Transaction> getAllTransctions(Pageable pageable) {
-        return this.transactionRepository.findAll((Sort) pageable);
+    public List<Transaction> getAllTransctions() {
+        return this.transactionRepository.findAll();
     }
 }

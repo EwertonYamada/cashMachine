@@ -12,6 +12,4 @@ public class AccountDto {
     private Long agency;
     @NotNull
     private Long associate;
-    @NotNull
-    private Integer accountType;
 }

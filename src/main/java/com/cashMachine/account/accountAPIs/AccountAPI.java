@@ -3,12 +3,10 @@ package com.cashMachine.account.accountAPIs;
 import com.cashMachine.account.account.Account;
 import com.cashMachine.account.accountServices.AccountService;
 import com.cashMachine.account.dtos.AccountDto;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import com.cashMachine.account.enums.AccountType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
@@ -20,9 +18,19 @@ public class AccountAPI {
         this.accountService = accountService;
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<List<Account>> createAccount(@RequestBody AccountDto accountDto) {
-        return ResponseEntity.ok(this.accountService.createAccount(accountDto));
+    @PostMapping("/new/savings")
+    public ResponseEntity<Account> createSavingsAccount(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.SAVINGS, false));
+    }
+
+    @PostMapping("/new/checking")
+    public ResponseEntity<Account> createCheckingAccount(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.CHECKING, false));
+    }
+
+    @PostMapping("/new/both")
+    public ResponseEntity<List<Account>> createBothAccounts(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccounts(accountDto));
     }
 
     @GetMapping("/{id}")
@@ -31,9 +39,8 @@ public class AccountAPI {
     }
 
     @GetMapping("/all-accounts")
-    public ResponseEntity<List<Account>> getAllAgencies(@PageableDefault(size = 10000, sort = "number",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.accountService.getAllAccounts(pageable));
+    public ResponseEntity<List<Account>> getAllAgencies() {
+        return ResponseEntity.ok(this.accountService.getAllAccounts());
     }
 
 

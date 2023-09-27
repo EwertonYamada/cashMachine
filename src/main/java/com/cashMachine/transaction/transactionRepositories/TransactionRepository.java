@@ -22,9 +22,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                                 @Param("transactionDate") Date transactionDate,
                                                 @Param("sourceAccountId") Long sourceAccountId);
 
-    @Query(nativeQuery = true,
-            value = "SELECT ")
-    boolean validateDailyTransactionLimit(BigDecimal value, Long sourceAccount);
+//    @Query(nativeQuery = true,
+//            value = "SELECT ")
+//    boolean validateDailyTransactionLimit(BigDecimal value, Long sourceAccount);
 
     @Query(nativeQuery = true,
             value = "SELECT COALESCE(SUM(t.transaction_value), 0) " +
@@ -43,4 +43,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                     "   ON a2.agency_id = a.id  " +
                     "WHERE a2.id = :account ")
     BigDecimal getFullBalanceTransactionByAccountId(@Param("account") Long account);
+
+    @Query(nativeQuery = true,
+                 value = " SELECT type_account " +
+                         " FROM account a " +
+                         " WHERE id = :accountId ")
+    String selectTypeAccount(@Param("accountId") Long accountId);
 }

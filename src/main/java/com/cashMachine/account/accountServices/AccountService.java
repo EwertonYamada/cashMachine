@@ -5,13 +5,14 @@ import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.dtos.AccountDto;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
-import com.cashMachine.transaction.enums.TransactionType;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AccountService {
@@ -26,25 +27,25 @@ public class AccountService {
     }
 
     public Account createAccount(AccountDto accountDto) {
-        this.validateIfAccontNumberExists(accountDto.getAgency(), accountDto.getNumber());
-        this.validateIfMemberAlreadyHasAccountInBank(accountDto.getAssociate(), accountDto.getAgency());
-        Account account = new Account();
-        account.setNumber(accountDto.getNumber());
-        account.setAssociate(this.associateService.getAssociateById(accountDto.getAssociate()));
-        account.setAgency(this.agencyService.getAgencyById(accountDto.getAgency()));
-        account.setBalance(new BigDecimal(0));
+        this.validateIfAccountNumberExists(accountDto.getAgency(), accountDto.getTypeAccount(), accountDto.getNumber());
+        this.validateIfMemberAlreadyHasAccountInBank(accountDto.getAssociate(), accountDto.getAgency(), accountDto.getTypeAccount());
+        this.validationTypeAccount(accountDto.getTypeAccount().toUpperCase());
+
+        if(accountDto.getTypeAccount().toUpperCase().contentEquals("CHECKING-SAVING")){ this.createAccountCheckingSaving(accountDto); }
+
+        Account account = this.configNewAccount(accountDto, accountDto.getTypeAccount());
         return this.accountRepository.save(account);
     }
 
-    private void validateIfMemberAlreadyHasAccountInBank(Long associateId, Long agencyId) {
-        if (this.accountRepository.countMemberAlreadyHasAccountInBank(associateId, agencyId)) {
-            throw new RuntimeException("Associado já possui conta no banco!");
+    private void validateIfMemberAlreadyHasAccountInBank(Long associateId, Long agencyId, String typeAccount) {
+        if (this.accountRepository.countMemberAlreadyHasAccountInBank(associateId, agencyId, typeAccount.toUpperCase())) {
+            throw new RuntimeException("Associado já possui esse tipo de conta no banco!");
         }
     }
 
-    private void validateIfAccontNumberExists(Long agencyId, Long accountNumber) {
-        if (this.accountRepository.countAccountNumberInBank(agencyId, accountNumber)) {
-            throw new RuntimeException("Número de conta já utilizada!");
+    private void validateIfAccountNumberExists(Long agencyId, String typeAccount, Long accountNumber) {
+        if (this.accountRepository.countAccountNumberInBank(agencyId,typeAccount.toUpperCase(), accountNumber)) {
+            throw new RuntimeException("Número de conta já utilizada para esse tipo de conta!");
         }
     }
 
@@ -70,7 +71,63 @@ public class AccountService {
         return this.accountRepository.getBalance(accountId);
     }
 
-    public Long getBankIdByAccountId(Long sourceAccount) {
-        return this.accountRepository.getBankIdByAccountId(sourceAccount);
+    public void validationTypeAccount(String typeAccount){
+        if (Objects.isNull(typeAccount)){
+            throw new RuntimeException("Por favor, informar o tipo da conta!");
+        }
+        if(!typeAccount.contentEquals("CHECKING")
+                && !typeAccount.contentEquals("SAVING")
+                && !typeAccount.contentEquals("CHECKING-SAVING")){
+            throw new RuntimeException("Tipo de conta inválido!");
+        }
     }
+
+    public void createAccountCheckingSaving(AccountDto accountDto) {
+        this.accountRepository.save(configNewAccount(accountDto, "CHECKING"));
+        this.accountRepository.save(configNewAccount(accountDto, "SAVING"));
+    }
+
+    public Account configNewAccount(AccountDto accountDto, String typeAccount){
+        Account account = new Account();
+        account.setNumber(accountDto.getNumber());
+        account.setAssociate(this.associateService.getAssociateById(accountDto.getAssociate()));
+        account.setAgency(this.agencyService.getAgencyById(accountDto.getAgency()));
+        account.setBalance(new BigDecimal(0));
+        account.setTypeAccount(typeAccount.toUpperCase());
+        return account;
+    }
+
+    public ResponseEntity<Object> createSecondAccount (Long firstAccountId){
+        Account account = new Account();
+        Account account1 = this.accountRepository.selectAccountById(firstAccountId);
+
+        if(this.accountRepository.countAccountsByNumberAnAndAgency(account1.getNumber(),account1.getAgency().getId()) > 1){
+            throw new RuntimeException("Associado já possui tanto a conta corrente quando a poupança nesse banco!");
+        }
+
+        account.setNumber(account1.getNumber());
+        account.setAgency(account1.getAgency());
+        account.setAssociate(account1.getAssociate());
+        account.setTypeAccount(account1.getTypeAccount());
+        account.setBalance(new BigDecimal(0));
+
+        if(account.getTypeAccount().contentEquals("CHECKING")){
+            account.setTypeAccount("SAVING");
+        } else if(account.getTypeAccount().contentEquals("SAVING")) {
+            account.setTypeAccount("CHECKING");
+        }
+
+        this.accountRepository.save(account);
+        return ResponseEntity.ok("Sua conta ".concat(account.getTypeAccount()).concat(" foi criada!"));
+    }
+
+    public Account getCheckingAccountBySavingAccount(Long savingAccountId){
+        Account checkingAccount = this.accountRepository.selectCheckingAccountBySavingAccount(savingAccountId);
+        return checkingAccount;
+    }
+
+    //CONSERTAR A QUERY
+//    public Long getBankIdByAccountId(Long sourceAccount) {
+//        return this.accountRepository.getBankIdByAccountId(sourceAccount);
+//    }
 }

@@ -20,12 +20,12 @@ public class AccountAPI {
 
     @PostMapping("/new/savings")
     public ResponseEntity<Account> createSavingsAccount(@RequestBody AccountDto accountDto) {
-        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.SAVINGS, false));
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.SAVINGS));
     }
 
     @PostMapping("/new/checking")
     public ResponseEntity<Account> createCheckingAccount(@RequestBody AccountDto accountDto) {
-        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.CHECKING, false));
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.CHECKING));
     }
 
     @PostMapping("/new/both")

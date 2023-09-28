@@ -36,9 +36,9 @@ public class AccountService {
 
         return Accounts;
     }
-    public Account createAccount(AccountDto accountDto, AccountType accountType, Boolean both) {
-        this.countMemberAlreadyHasAccountInBankWithThisAccountType(accountDto.getNumber(), accountType.toString());
-        this.validateIfThereIsAlreadyMemberWithThatAccountType(accountDto.getAssociate(), accountDto.getAssociate());
+    public Account createAccount(AccountDto accountDto, AccountType accountType, Boolean... both) {
+        this.validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(accountDto.getAssociate(), accountType.toString());
+        this.validateIfTheAccountNumberIsAlreadyUsedByAMemberInAgency(accountDto.getAssociate(), accountDto.getAgency() ,accountDto.getAssociate());
 
         Account account = new Account();
         account.setNumber(accountDto.getNumber());
@@ -47,21 +47,20 @@ public class AccountService {
         account.setBalance(BigDecimal.ZERO);
         account.setAccountType(accountType.toString());
 
-        return (both) ? account : this.accountRepository.save(account);
+        return ((both.length >= 1) ? both[0] : false) ? account : this.accountRepository.save(account);
 
     }
 
-    private void countMemberAlreadyHasAccountInBankWithThisAccountType(Long associateId, String accountType) {
-        if (this.accountRepository.countMemberAlreadyHasAccountInBankWithThisAccountType(associateId, accountType)) {
-            throw new RuntimeException("Associado já possui conta no banco!");
+    private void validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(Long associateId, String accountType) {
+        if (this.accountRepository.validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(associateId, accountType)) {
+            throw new RuntimeException("Associado já esse tipo de conta nesse banco!");
         }
     }
 
-    private void validateIfThereIsAlreadyMemberWithThatAccountType(Long accountNumber, Long associateId) {
-
-        if (this.accountRepository.validateIfTheAccountNumberIsAlreadyUsedByAMember(accountNumber, associateId)) {
-            throw new RuntimeException("Número de conta ".concat(accountNumber.toString())
-                    .concat(" já utilizada ").concat(" em uma conta do tipo ").concat(associateId.toString()));
+    private void validateIfTheAccountNumberIsAlreadyUsedByAMemberInAgency(Long accountNumber, Long agencyId , Long associateId) {
+        if (this.accountRepository.validateIfTheAccountNumberIsAlreadyUsedByAMember(accountNumber, agencyId ,associateId)) {
+            throw new RuntimeException("Número de conta '".concat(accountNumber.toString())
+                    .concat("' já utilizada ").concat("na agência ").concat(agencyId.toString()));
         }
     }
 

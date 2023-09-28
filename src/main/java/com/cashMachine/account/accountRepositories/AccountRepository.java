@@ -15,18 +15,19 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                     "   FROM account a " +
                     "   WHERE a.associate_id = :associateId " +
                     "       AND a.account_type = :accountType ")
-    boolean countMemberAlreadyHasAccountInBankWithThisAccountType(@Param("accountNumber") Long associateId,
-                                     @Param("accountType") String accountType);
+    boolean validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(@Param("associateId") Long associateId,
+                                                                  @Param("accountType") String accountType);
 
     @Query(nativeQuery = true,
             value = "    SELECT COUNT(associate_id) > 0 " +
                     "    FROM account a " +
-                    "    WHERE  a.account_number = :accountNumber " +
-                    "       AND a.associate_id != :associateId ")
+                    "    WHERE  ( a.account_number = :accountNumber " +
+                    "       AND a.agency_id = :agencyId " +
+                    "       AND a.associate_id != :associateId ) ")
     boolean validateIfTheAccountNumberIsAlreadyUsedByAMember(@Param("accountNumber") Long accountNumber,
+                                                             @Param("agencyId") Long agencyId,
                                                              @Param("associateId") Long associateId);
-    // Verificar esss duas validações!!!
-    //    whether
+
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +
                     "FROM account a " +

@@ -5,6 +5,7 @@ import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.dtos.AccountDto;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
+import com.cashMachine.transaction.enums.AccountType;
 import com.cashMachine.transaction.enums.TransactionType;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -25,26 +26,45 @@ public class AccountService {
         this.agencyService = agencyService;
     }
 
-    public Account createAccount(AccountDto accountDto) {
-        this.validateIfAccontNumberExists(accountDto.getAgency(), accountDto.getNumber());
-        this.validateIfMemberAlreadyHasAccountInBank(accountDto.getAssociate(), accountDto.getAgency());
+    public Account newAccount(AccountDto accountDto, AccountType accountType) {
+        switch(accountType) {
+            case CHECKING:
+                break;
+            case SAVING:
+                break;
+        }
+        this.validateAccountCreation(accountDto.getAgency(), accountDto.getAssociate(), accountDto.getNumber(), accountType.toString());
+        return createAccount(accountDto,accountType);
+    }
+    public Account createAccount(AccountDto accountDto, AccountType accountType) {
         Account account = new Account();
         account.setNumber(accountDto.getNumber());
         account.setAssociate(this.associateService.getAssociateById(accountDto.getAssociate()));
         account.setAgency(this.agencyService.getAgencyById(accountDto.getAgency()));
         account.setBalance(new BigDecimal(0));
+        account.setType(accountType.toString());
         return this.accountRepository.save(account);
     }
 
-    private void validateIfMemberAlreadyHasAccountInBank(Long associateId, Long agencyId) {
-        if (this.accountRepository.countMemberAlreadyHasAccountInBank(associateId, agencyId)) {
+    private void validateIfMemberAlreadyHasAccountInBank(Long agencyId, Long associateId) {
+        if (this.accountRepository.countMemberAlreadyHasAccountInBankOrBankNumberExists(agencyId,associateId,null)) {
             throw new RuntimeException("Associado já possui conta no banco!");
         }
     }
 
     private void validateIfAccontNumberExists(Long agencyId, Long accountNumber) {
-        if (this.accountRepository.countAccountNumberInBank(agencyId, accountNumber)) {
+        if (this.accountRepository.countMemberAlreadyHasAccountInBankOrBankNumberExists(agencyId,null,accountNumber)) {
             throw new RuntimeException("Número de conta já utilizada!");
+        }
+    }
+
+    private void validateAccountCreation(Long agencyId, Long associateId, Long accountNumber, String accountType) {
+        if (!this.accountRepository.checkThePersonCreatingAccount(agencyId, associateId, accountNumber)) {
+            validateIfAccontNumberExists(agencyId, accountNumber);
+            validateIfMemberAlreadyHasAccountInBank(agencyId,associateId);
+        }
+        if (this.accountRepository.checkIfAccountTypeAlreadyExists(accountNumber,accountType,agencyId)) {
+            throw new RuntimeException("Você já possui uma conta do tipo ".concat(accountType));
         }
     }
 
@@ -56,8 +76,8 @@ public class AccountService {
         }
     }
 
-    public List<Account> getAllAccounts(Pageable pageable) {
-        return this.accountRepository.findAll((Sort) pageable);
+    public List<Account> getAllAccounts() {
+        return this.accountRepository.findAll();
     }
 
     public void updateBalance(Long accountId, BigDecimal value) {
@@ -73,4 +93,6 @@ public class AccountService {
     public Long getBankIdByAccountId(Long sourceAccount) {
         return this.accountRepository.getBankIdByAccountId(sourceAccount);
     }
+
+
 }

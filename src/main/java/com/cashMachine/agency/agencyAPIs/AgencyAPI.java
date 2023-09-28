@@ -32,8 +32,7 @@ public class AgencyAPI {
     }
 
     @GetMapping("/all-agencies")
-    public ResponseEntity<List<Agency>> getAllAgencies(@PageableDefault(page = 0, size = 10000, sort = "bankName",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.agencyService.getAllAgencies(pageable));
+    public ResponseEntity<List<Agency>> getAllAgencies() {
+        return ResponseEntity.ok(this.agencyService.getAllAgencies());
     }
 }

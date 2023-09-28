@@ -8,10 +8,8 @@ import com.cashMachine.transaction.TransactionDto;
 import com.cashMachine.transaction.enums.TransactionType;
 import com.cashMachine.transaction.transaction.Transaction;
 import com.cashMachine.transaction.transactionRepositories.TransactionRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Calendar;
@@ -39,9 +37,18 @@ public class TransactionService {
             case DEPOSIT:
                 break;
             case TRANSFER:
+                if (this.transactionRepository.checkAccountType(transactionDto.getSourceAccount()).equals("SAVING")){
+                    throw new RuntimeException("Contas do tipo poupança não podem realizar transferencias!");
+                }
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case WITHDRAW:
+                this.generalValidations(transactionDto, transactionType);
+                break;
+            case RESCUE:
+                if(this.transactionRepository.checkAccountType(transactionDto.getSourceAccount()).equals("SAVING")) {
+                    throw new RuntimeException("Contas do tipo corrente não podem realizar resgates!");
+                }
                 this.generalValidations(transactionDto, transactionType);
                 break;
         }
@@ -50,7 +57,8 @@ public class TransactionService {
 
     private BigDecimal getOpeningBalanceOfTheDay(TransactionDto transactionDto) {
         BigDecimal openingBalanceOfTheDay = this.transactionRepository.getExitTransactions(transactionDto.getSourceAccount(),
-                this.getCurrentDate()).add(this.accountService.getBalance(transactionDto.getSourceAccount()));
+                this.getCurrentDate(), this.transactionRepository.checkAccountType(transactionDto.getSourceAccount()))
+                .add(this.accountService.getBalance(transactionDto.getSourceAccount()));
         return openingBalanceOfTheDay;
     }
 
@@ -63,19 +71,17 @@ public class TransactionService {
         return currentDate.getTime();
     }
 
-
     private void generalValidations(TransactionDto transactionDto, TransactionType transactionType) {
         this.validateQuantityTransacions(transactionType, transactionDto.getSourceAccount());
         this.validateValueForTransaction(transactionDto);
         this.validateBalanceAvaliability(transactionDto.getSourceAccount(), transactionDto.getValue());
     }
 
-
     private void validateValueForTransaction(TransactionDto transactionDto) {
         BigDecimal allowedDailyValue = this.getOpeningBalanceOfTheDay(transactionDto).multiply(TRANSACTIONS_PERCENTAGE_LIMIT);
         BigDecimal fullLimitTransactionOfBank = this.transactionRepository.getFullBalanceTransactionByAccountId(transactionDto.getSourceAccount());
         BigDecimal valueMovedOnTheDayPlusValueToBeMoved = this.transactionRepository.getExitTransactions(transactionDto.getSourceAccount(),
-                getCurrentDate()).add(transactionDto.getValue());
+                getCurrentDate(),this.transactionRepository.checkAccountType(transactionDto.getSourceAccount())).add(transactionDto.getValue());
 
         if (getOpeningBalanceOfTheDay(transactionDto).compareTo(fullLimitTransactionOfBank) > 0 &&
                 allowedDailyValue.compareTo(fullLimitTransactionOfBank) < 1 ) {
@@ -95,13 +101,24 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setDate(new Date());
         transaction.setValue(new BigDecimal(String.valueOf(transactionDto.getValue())).setScale(2, RoundingMode.HALF_EVEN));
-        if (Objects.nonNull(transactionDto.getTargetAccount()) && (transactionType.equals(TransactionType.DEPOSIT) ||
-                transactionType.equals(TransactionType.TRANSFER))) {
-            Account targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
+        if ((Objects.nonNull(transactionDto.getTargetAccount()) && (transactionType.equals(TransactionType.DEPOSIT) ||
+                transactionType.equals(TransactionType.TRANSFER)) || transactionType.equals((TransactionType.RESCUE)))) {
+            Account targetAccount = new Account();
+            if(transactionType.equals(TransactionType.RESCUE)){
+                targetAccount = this.accountService.getAccountById(transactionRepository.getCheckingAccountIdByAssociateAndAgencyId(
+                this.transactionRepository.getAssociateIdBySourceAccount(transactionDto.getSourceAccount()),
+                this.transactionRepository.getAgencyIdBySourceAccount(transactionDto.getSourceAccount())));
+            }
+            else{
+                 targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
+            }
+
             transaction.setTargetAccount(targetAccount);
             this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
         }
-        if (Objects.nonNull(transactionDto.getSourceAccount()) && (transactionType.equals(TransactionType.WITHDRAW) || transactionType.equals(TransactionType.TRANSFER))) {
+        if (Objects.nonNull(transactionDto.getSourceAccount()) && (transactionType.equals(TransactionType.WITHDRAW) || transactionType.equals(TransactionType.TRANSFER)
+                || transactionType.equals(TransactionType.RESCUE))) {
+
             Account sourceAccount = this.accountService.getAccountById(transactionDto.getSourceAccount());
             transaction.setSourceAccount(this.accountService.getAccountById(transactionDto.getSourceAccount()));
             this.accountService.updateBalance(sourceAccount.getId(), transactionDto.getValue().multiply(new BigDecimal(-1)));
@@ -131,7 +148,7 @@ public class TransactionService {
         }
     }
 
-    public List<Transaction> getAllTransctions(Pageable pageable) {
-        return this.transactionRepository.findAll((Sort) pageable);
+    public List<Transaction> getAllTransctions() {
+        return this.transactionRepository.findAll();
     }
 }

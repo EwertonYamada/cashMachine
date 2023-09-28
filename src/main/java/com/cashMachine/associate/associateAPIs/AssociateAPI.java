@@ -32,8 +32,7 @@ public class AssociateAPI {
     }
 
     @GetMapping("/all-associates")
-    public ResponseEntity<List<Associate>> getAllAssociates(@PageableDefault(page = 0, size = 10000, sort = "bankName",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.associateService.getAllAssociates(pageable));
+    public ResponseEntity<List<Associate>> getAllAssociates() {
+        return ResponseEntity.ok(this.associateService.getAllAssociates());
     }
 }

@@ -37,8 +37,8 @@ public class BankService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bank> getAllBanks(Pageable pageable) {
-        return this.bankRepository.findAll((Sort) pageable);
+    public List<Bank> getAllBanks() {
+        return this.bankRepository.findAll();
     }
 
     public Bank replaceBank(Bank bank, Long id) {

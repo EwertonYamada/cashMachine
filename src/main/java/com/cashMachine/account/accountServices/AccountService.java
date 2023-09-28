@@ -34,7 +34,7 @@ public class AccountService {
     }
     public Account createAccount(AccountDto accountDto, AccountType accountType) {
         this.validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(accountDto.getAssociate(), accountType.toString());
-        this.validateIfTheAccountNumberIsAlreadyUsedByAMemberInAgency(accountDto.getAssociate(), accountDto.getAgency() ,accountDto.getAssociate());
+        this.validateIfTheAccountNumberIsAlreadyUsedByAMemberInAgency(accountDto.getNumber(), accountDto.getAgency() ,accountDto.getAssociate());
 
         Account account = new Account();
         account.setNumber(accountDto.getNumber());

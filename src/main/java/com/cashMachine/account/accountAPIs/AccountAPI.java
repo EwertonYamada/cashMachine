@@ -3,6 +3,7 @@ package com.cashMachine.account.accountAPIs;
 import com.cashMachine.account.account.Account;
 import com.cashMachine.account.accountServices.AccountService;
 import com.cashMachine.account.dtos.AccountDto;
+import com.cashMachine.transaction.enums.AccountType;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,13 @@ public class AccountAPI {
         this.accountService = accountService;
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<Account> createAccount(@RequestBody AccountDto accountDto) {
-        return ResponseEntity.ok(this.accountService.createAccount(accountDto));
+    @PostMapping("/new-saving")
+    public ResponseEntity<Account> createSavingAccount(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.newAccount(accountDto,AccountType.SAVING));
+    }
+    @PostMapping("/new-checking")
+    public ResponseEntity<Account> createCheckingAccount(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.newAccount(accountDto,AccountType.CHECKING));
     }
 
     @GetMapping("/{id}")

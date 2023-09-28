@@ -5,6 +5,7 @@ import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.dtos.AccountDto;
 import com.cashMachine.agency.agencyServices.AgencyService;
 import com.cashMachine.associate.associateServices.AssociateService;
+import com.cashMachine.transaction.enums.AccountType;
 import com.cashMachine.transaction.enums.TransactionType;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -25,14 +26,23 @@ public class AccountService {
         this.agencyService = agencyService;
     }
 
-    public Account createAccount(AccountDto accountDto) {
-        this.validateAccountCreation(accountDto.getAgency(), accountDto.getAssociate(), accountDto.getNumber(), accountDto.getType());
+    public Account newAccount(AccountDto accountDto, AccountType accountType) {
+        switch(accountType) {
+            case CHECKING:
+                break;
+            case SAVING:
+                break;
+        }
+        this.validateAccountCreation(accountDto.getAgency(), accountDto.getAssociate(), accountDto.getNumber(), accountType.toString());
+        return createAccount(accountDto,accountType);
+    }
+    public Account createAccount(AccountDto accountDto, AccountType accountType) {
         Account account = new Account();
         account.setNumber(accountDto.getNumber());
         account.setAssociate(this.associateService.getAssociateById(accountDto.getAssociate()));
         account.setAgency(this.agencyService.getAgencyById(accountDto.getAgency()));
         account.setBalance(new BigDecimal(0));
-        account.setType(accountDto.getType());
+        account.setType(accountType.toString());
         return this.accountRepository.save(account);
     }
 
@@ -53,7 +63,7 @@ public class AccountService {
             validateIfAccontNumberExists(agencyId, accountNumber);
             validateIfMemberAlreadyHasAccountInBank(agencyId,associateId);
         }
-        if (this.accountRepository.checkIfAccountTypeAlreadyExists(accountNumber,accountType)) {
+        if (this.accountRepository.checkIfAccountTypeAlreadyExists(accountNumber,accountType,agencyId)) {
             throw new RuntimeException("Você já possui uma conta do tipo ".concat(accountType));
         }
     }

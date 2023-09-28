@@ -35,8 +35,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             value = "SELECT COUNT(*) > 0 " +
                     "FROM account a " +
                     "WHERE a.account_number = :accountNumber " +
-                    "AND a.account_type = :accountType")
-    boolean checkIfAccountTypeAlreadyExists(@Param("accountNumber") Long accountNumber, @Param("accountType") String accountType);
+                    "AND a.account_type = :accountType " +
+                    "AND a.agency_id  = :agencyId")
+    boolean     checkIfAccountTypeAlreadyExists(@Param("accountNumber") Long accountNumber, @Param("accountType") String accountType, @Param("agencyId") Long agencyId);
 
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +

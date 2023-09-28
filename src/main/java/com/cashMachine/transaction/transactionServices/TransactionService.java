@@ -46,6 +46,9 @@ public class TransactionService {
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case RESCUE:
+                if(this.transactionRepository.checkAccountType(transactionDto.getSourceAccount()).equals("SAVING")) {
+                    throw new RuntimeException("Contas do tipo corrente não podem realizar resgates!");
+                }
                 this.generalValidations(transactionDto, transactionType);
                 break;
         }

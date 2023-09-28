@@ -35,12 +35,16 @@ public class TransactionService {
                 break;
             case TRANSFER:
                 this.generalValidations(transactionDto, transactionType);
+                this.validateTypeAccount(transactionDto.getSourceAccount(),transactionType);
+                this.validateSourceAccountAndTargetAccount(transactionDto.getSourceAccount(), transactionDto.getTargetAccount(), transactionType);
                 break;
             case WITHDRAW:
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case RESCUE:
                 this.generalValidations(transactionDto, transactionType);
+                this.validateTypeAccount(transactionDto.getSourceAccount(),transactionType);
+                this.validateSourceAccountAndTargetAccount(transactionDto.getSourceAccount(), transactionDto.getTargetAccount(), transactionType);
                 break;
         }
         return this.executeTransaction(transactionType,transactionDto);
@@ -66,11 +70,6 @@ public class TransactionService {
         this.validateQuantityTransactions(transactionType, transactionDto.getSourceAccount());
         this.validateValueForTransaction(transactionDto);
         this.validateBalanceAvaliability(transactionDto.getSourceAccount(), transactionDto.getValue());
-
-        if(transactionType.equals(TransactionType.TRANSFER)){
-            this.validateTypeAccount(transactionDto.getSourceAccount());
-            this.validateSourceAccountAndTargetAccount(transactionDto.getSourceAccount(), transactionDto.getTargetAccount());
-        }
     }
 
 
@@ -99,30 +98,16 @@ public class TransactionService {
         transaction.setDate(new Date());
         transaction.setValue(new BigDecimal(String.valueOf(transactionDto.getValue())).setScale(2, RoundingMode.HALF_EVEN));
         if (Objects.nonNull(transactionDto.getTargetAccount()) && ((transactionType.equals(TransactionType.DEPOSIT) ||
-                transactionType.equals(TransactionType.TRANSFER)))) {
+                transactionType.equals(TransactionType.TRANSFER) || transactionType.equals(TransactionType.RESCUE)))) {
             Account targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
             transaction.setTargetAccount(targetAccount);
             this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
         }
         if (Objects.nonNull(transactionDto.getSourceAccount()) && (transactionType.equals(TransactionType.WITHDRAW) ||
-                transactionType.equals(TransactionType.TRANSFER))) {
+                transactionType.equals(TransactionType.TRANSFER) || transactionType.equals(TransactionType.RESCUE))) {
             Account sourceAccount = this.accountService.getAccountById(transactionDto.getSourceAccount());
             transaction.setSourceAccount(this.accountService.getAccountById(transactionDto.getSourceAccount()));
             this.accountService.updateBalance(sourceAccount.getId(), transactionDto.getValue().multiply(new BigDecimal(-1)));
-        }
-        if (Objects.nonNull(transactionDto.getSourceAccount()) && transactionType.equals(TransactionType.RESCUE)){
-            Account savingAccount = this.accountService.getAccountById(transactionDto.getSourceAccount());
-            Account checkingAccount = this.accountService.getCheckingAccountBySavingAccount(transactionDto.getSourceAccount());
-            if (savingAccount.getTypeAccount().contentEquals("CHECKING")){
-                throw new RuntimeException("Só é possível fazer um resgate a partir de uma conta poupança!");
-            }
-            if (Objects.nonNull(transactionDto.getTargetAccount()) && !transactionDto.getTargetAccount().equals(checkingAccount.getId())){
-                throw new RuntimeException("Só é possível resgatar para a conta corrente do mesmo associado.");
-            }
-            savingAccount.setBalance(savingAccount.getBalance().subtract(transactionDto.getValue()));
-            checkingAccount.setBalance(checkingAccount.getBalance().add(transactionDto.getValue()));
-            transaction.setSourceAccount(savingAccount);
-            transaction.setTargetAccount(checkingAccount);
         }
         transaction.setTransactionType(transactionType.toString());
         this.transactionRepository.save(transaction);
@@ -151,15 +136,24 @@ public class TransactionService {
         return this.transactionRepository.findAll((Sort) pageable);
     }
 
-    private void validateTypeAccount(Long accountId){
-        if (this.transactionRepository.selectTypeAccount(accountId).contentEquals("SAVING")) {
+    private void validateTypeAccount(Long accountId, TransactionType transactionType){
+        if (this.transactionRepository.selectTypeAccount(accountId).contentEquals("SAVING") && transactionType.equals(TransactionType.TRANSFER)) {
             throw new RuntimeException("Não é possível realizar transferências a partir de uma conta poupança!");
+        }
+        if (this.transactionRepository.selectTypeAccount(accountId).contentEquals("CHECKING") && transactionType.equals(TransactionType.RESCUE)){
+            throw new RuntimeException("Só é possível fazer um resgate a partir de uma conta poupança!");
         }
     }
 
-    private void validateSourceAccountAndTargetAccount(Long sourceAccountId, Long targetAccountId){
+    private void validateSourceAccountAndTargetAccount(Long sourceAccountId, Long targetAccountId, TransactionType transactionType){
         if (Objects.equals(sourceAccountId, targetAccountId)){
             throw new RuntimeException("Não se pode realizar operações de uma conta para ela mesma!");
+        }
+        if (transactionType.equals(TransactionType.RESCUE)){
+            Account checkingAccount = this.accountService.getCheckingAccountBySavingAccount(sourceAccountId);
+            if (Objects.nonNull(targetAccountId) && !targetAccountId.equals(checkingAccount.getId())){
+                throw new RuntimeException("Só é possível resgatar para a conta corrente do mesmo associado.");
+            }
         }
     }
 }

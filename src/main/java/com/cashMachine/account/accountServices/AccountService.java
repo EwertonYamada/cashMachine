@@ -99,7 +99,7 @@ public class AccountService {
 
     public ResponseEntity<Object> createSecondAccount (Long firstAccountId){
         Account account = new Account();
-        Account account1 = this.accountRepository.selectAccountById(firstAccountId);
+        Account account1 = this.getAccountById(firstAccountId);
 
         if(this.accountRepository.countAccountsByNumberAnAndAgency(account1.getNumber(),account1.getAgency().getId()) > 1){
             throw new RuntimeException("Associado já possui tanto a conta corrente quando a poupança nesse banco!");
@@ -108,12 +108,11 @@ public class AccountService {
         account.setNumber(account1.getNumber());
         account.setAgency(account1.getAgency());
         account.setAssociate(account1.getAssociate());
-        account.setTypeAccount(account1.getTypeAccount());
         account.setBalance(new BigDecimal(0));
 
-        if(account.getTypeAccount().contentEquals("CHECKING")){
+        if(account1.getTypeAccount().contentEquals("CHECKING")){
             account.setTypeAccount("SAVING");
-        } else if(account.getTypeAccount().contentEquals("SAVING")) {
+        } else if(account1.getTypeAccount().contentEquals("SAVING")) {
             account.setTypeAccount("CHECKING");
         }
 

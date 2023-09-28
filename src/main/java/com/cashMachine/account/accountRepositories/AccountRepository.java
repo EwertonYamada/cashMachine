@@ -40,12 +40,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     BigDecimal getBalance(@Param("sourceAccountId") Long sourceAccountId);
 
     @Query(nativeQuery = true,
-                 value = " SELECT * " +
-                         " FROM account a " +
-                         " WHERE a.id = :accountId ")
-    Account selectAccountById(@Param("accountId") Long accountId);
-
-    @Query(nativeQuery = true,
                  value = "SELECT COUNT(*) " +
                          "FROM account a " +
                          "WHERE account_number = :accountNumber " +
@@ -60,10 +54,4 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                          "          FROM account " +
                          "          WHERE id = :accountId)")
     Account selectCheckingAccountBySavingAccount(@Param("accountId") Long accountId);
-
-    @Query(nativeQuery = true,
-            value = "SELECT b.full_balance_transaction" +
-                    "FROM bank b " /*+
-                    "WHERE "*/)
-    Long getBankIdByAccountId(Long sourceAccount);
 }

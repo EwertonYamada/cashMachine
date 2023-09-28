@@ -28,4 +28,11 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="2" author="gustavo.silva@sgisistemas.com.br" >
+        <update tableName="account">
+            <column name="account_type" value="CHECKING" />
+            <where>account_type is null</where>
+        </update>
+    </changeSet>
+
 </databaseChangeLog>

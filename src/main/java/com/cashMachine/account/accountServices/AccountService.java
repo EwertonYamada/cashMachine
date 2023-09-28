@@ -27,16 +27,12 @@ public class AccountService {
 
     public List<Account> createAccounts(AccountDto accountDto) {
         List<Account> Accounts = new ArrayList<>();
-        Accounts.add(createAccount(accountDto, AccountType.SAVINGS, true));
-        Accounts.add(createAccount(accountDto, AccountType.CHECKING, true));
-
-        for (Account account : Accounts) {
-            this.accountRepository.save(account);
-        }
+        Accounts.add(createAccount(accountDto, AccountType.SAVINGS));
+        Accounts.add(createAccount(accountDto, AccountType.CHECKING));
 
         return Accounts;
     }
-    public Account createAccount(AccountDto accountDto, AccountType accountType, Boolean... both) {
+    public Account createAccount(AccountDto accountDto, AccountType accountType) {
         this.validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(accountDto.getAssociate(), accountType.toString());
         this.validateIfTheAccountNumberIsAlreadyUsedByAMemberInAgency(accountDto.getAssociate(), accountDto.getAgency() ,accountDto.getAssociate());
 
@@ -47,13 +43,13 @@ public class AccountService {
         account.setBalance(BigDecimal.ZERO);
         account.setAccountType(accountType.toString());
 
-        return ((both.length >= 1) ? both[0] : false) ? account : this.accountRepository.save(account);
+        return this.accountRepository.save(account);
 
     }
 
     private void validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(Long associateId, String accountType) {
         if (this.accountRepository.validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(associateId, accountType)) {
-            throw new RuntimeException("Associado já esse tipo de conta nesse banco!");
+            throw new RuntimeException("Associado já possui esse tipo de conta nesse banco!");
         }
     }
 
@@ -86,7 +82,4 @@ public class AccountService {
         return this.accountRepository.getBalance(accountId);
     }
 
-    public Long getBankIdByAccountId(Long sourceAccount) {
-        return this.accountRepository.getBankIdByAccountId(sourceAccount);
-    }
 }

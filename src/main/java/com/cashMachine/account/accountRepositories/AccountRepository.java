@@ -13,8 +13,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(nativeQuery = true,
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM account a " +
-                    "   WHERE a.associate_id = :associateId " +
-                    "       AND a.account_type = :accountType ")
+                    "   WHERE ( a.associate_id = :associateId " +
+                    "       AND a.account_type = :accountType ) ")
     boolean validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(@Param("associateId") Long associateId,
                                                                   @Param("accountType") String accountType);
 
@@ -34,9 +34,4 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                     "WHERE a.id = :sourceAccountId ")
     BigDecimal getBalance(@Param("sourceAccountId") Long sourceAccountId);
 
-    @Query(nativeQuery = true,
-            value = "SELECT b.full_balance_transaction" +
-                    "FROM bank b " +
-                    "")
-    Long getBankIdByAccountId(Long sourceAccount);
 }

@@ -25,6 +25,11 @@ public class AccountAPI {
         return ResponseEntity.ok(this.accountService.createAccount(accountDto));
     }
 
+    @PostMapping("/second-account/{id}")
+    public ResponseEntity<Object> secondAccount(@PathVariable("id") Long firstAccountId){
+        return ResponseEntity.ok(this.accountService.createSecondAccount(firstAccountId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Account> getAccountById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(this.accountService.getAccountById(id));

@@ -25,4 +25,6 @@ public class Account {
     private Associate associate;
     @Column(name = "balance")
     private BigDecimal balance;
+    @Column(name = "type_account")
+    private String typeAccount;
 }

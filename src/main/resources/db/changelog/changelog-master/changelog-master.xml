@@ -28,19 +28,19 @@
     </addColumn>
     </changeSet>
 
-<!--    <changeSet id="13" author="michel.junior@sgisistemas.com.br">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <sqlCheck expectedResult="t">-->
-<!--                SELECT COUNT(*) > 0-->
-<!--                FROM account a-->
-<!--                WHERE a.type_account is null-->
-<!--            </sqlCheck>-->
-<!--        </preConditions>-->
-<!--        <comment>Setando todos as contas como conta corrente</comment>-->
-<!--        <sql>-->
-<!--            INSERT INTO account (type_account)-->
-<!--            VALUES (CHECKING)-->
-<!--              WHERE account.type_account is null;-->
-<!--        </sql>-->
-<!--    </changeSet>-->
+    <changeSet id="id sequencial" author="seu.email@sgisistemas.com.br">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="t">
+                SELECT COUNT(*) > 0
+                FROM account a
+                WHERE a.type_account is null
+            </sqlCheck>
+        </preConditions>
+        <comment>Setando as contas existentes como Conta Corrente</comment>
+        <sql>
+            UPDATE account a
+            SET type_account = 'CHECKING'
+            WHERE a.type_account IS null
+        </sql>
+    </changeSet>
 </databaseChangeLog>

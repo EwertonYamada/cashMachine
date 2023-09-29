@@ -37,16 +37,18 @@ public class TransactionService {
             case DEPOSIT:
                 break;
             case TRANSFER:
+                validateIfAccountTypeForTransactionType(transactionDto.getSourceAccount(),AccountType.CHECKING.toString());
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case WITHDRAW:
                 this.generalValidations(transactionDto, transactionType);
-                validateIfAccountTypeForTransactionType(transactionDto.getSourceAccount(),AccountType.CHECKING.toString());
+
                 break;
             case RESCUE:
-                this.validateIfAssociateIdAndAgencyIdAreEqualsForRescue(transactionDto);
                 validateIfAccountTypeForTransactionType(transactionDto.getSourceAccount(),AccountType.SAVINGS.toString());
                 validateIfAccountTypeForTransactionType(transactionDto.getTargetAccount(),AccountType.CHECKING.toString());
+                this.generalValidations(transactionDto, transactionType);
+                this.validateIfAssociateIdAndAgencyIdAreEqualsForRescue(transactionDto);
         }
         return this.executeTransaction(transactionType,transactionDto);
     }

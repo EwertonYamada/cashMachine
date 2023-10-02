@@ -13,21 +13,20 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(nativeQuery = true,
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM account a " +
-                    "   JOIN agency ag " +
-                    "       ON a.agency_id = ag.id " +
-                    "   WHERE a.account_number = :accountNumber " +
-                    "       AND ag.bank_id = ( " +
-                    "       SELECT bank_id " +
-                    "       FROM agency ag2 " +
-                    "       WHERE ag2.id = :agencyId) ")
-    boolean countAccountNumberInBank(@Param("agencyId") Long agencyId, @Param("accountNumber") Long accountNumber);
+                    "   WHERE ( a.associate_id = :associateId " +
+                    "       AND a.account_type = :accountType ) ")
+    boolean validateIfMemberAlreadyHasThisTypeOfAccountAtThatBank(@Param("associateId") Long associateId,
+                                                                  @Param("accountType") String accountType);
 
     @Query(nativeQuery = true,
-            value = "   SELECT COUNT(*) > 0 " +
-                    "   FROM account a " +
-                    "   WHERE a.agency_id = :agencyId " +
-                    "       AND a.associate_id = :associateId")
-    boolean countMemberAlreadyHasAccountInBank(Long associateId, Long agencyId);
+            value = "    SELECT COUNT(associate_id) > 0 " +
+                    "    FROM account a " +
+                    "    WHERE  ( a.account_number = :accountNumber " +
+                    "       AND a.agency_id = :agencyId " +
+                    "       AND a.associate_id != :associateId ) ")
+    boolean validateIfTheAccountNumberIsAlreadyUsedByAMember(@Param("accountNumber") Long accountNumber,
+                                                             @Param("agencyId") Long agencyId,
+                                                             @Param("associateId") Long associateId);
 
     @Query(nativeQuery = true,
             value = "SELECT a.balance " +
@@ -35,9 +34,4 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                     "WHERE a.id = :sourceAccountId ")
     BigDecimal getBalance(@Param("sourceAccountId") Long sourceAccountId);
 
-    @Query(nativeQuery = true,
-            value = "SELECT b.full_balance_transaction" +
-                    "FROM bank b " +
-                    "")
-    Long getBankIdByAccountId(Long sourceAccount);
 }

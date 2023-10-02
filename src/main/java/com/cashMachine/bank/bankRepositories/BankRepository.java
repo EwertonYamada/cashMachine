@@ -13,16 +13,14 @@ public interface BankRepository extends JpaRepository<Bank, Long> {
             value = "   SELECT COUNT(*) > 0 " +
                     "   FROM bank b " +
                     "   WHERE b.bank_number = :bankNumber " +
-                    "   OR b.bank_name LIKE %:bankName% " )
+                    "       OR b.bank_name = :bankName " )
     boolean countBankByNameOrNumber(@Param("bankName") String bankName, @Param("bankNumber") Long bankNumber);
 
     @Query(nativeQuery = true,
-            value = "SELECT COUNT(*) > 0 " +
-                    "FROM bank b " +
-                    "JOIN agency a " +
-                    "   ON a.bank_id = b.id" +
-                    "JOIN account a2 " +
-                    "   ON a2.agency_id = a.id " +
-                    "WHERE b.id = :bankId")
+            value = "   SELECT COUNT(*) > 0 " +
+                    "   FROM agency a " +
+                    "   JOIN account a2 " +
+                    "        ON a2.agency_id = a.id " +
+                    "   WHERE a.bank_id = :bankId")
     boolean checkForOpenAccountsByBankId(@Param("bankId") Long bankId);
 }

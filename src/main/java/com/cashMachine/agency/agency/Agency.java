@@ -11,6 +11,7 @@ import javax.persistence.*;
 public class Agency {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column
     private Long id;
     @Column(name = "agency_name")
     private String name;

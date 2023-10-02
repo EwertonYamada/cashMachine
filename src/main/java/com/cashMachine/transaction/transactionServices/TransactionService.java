@@ -3,21 +3,19 @@ package com.cashMachine.transaction.transactionServices;
 import com.cashMachine.account.account.Account;
 import com.cashMachine.account.accountRepositories.AccountRepository;
 import com.cashMachine.account.accountServices.AccountService;
+import com.cashMachine.account.enums.AccountType;
 import com.cashMachine.bank.bankRepositories.BankRepository;
-import com.cashMachine.transaction.TransactionDto;
+import com.cashMachine.transaction.dtos.TransactionDto;
 import com.cashMachine.transaction.enums.TransactionType;
 import com.cashMachine.transaction.transaction.Transaction;
 import com.cashMachine.transaction.transactionRepositories.TransactionRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class TransactionService {
@@ -39,11 +37,18 @@ public class TransactionService {
             case DEPOSIT:
                 break;
             case TRANSFER:
+                validateIfAccountTypeForTransactionType(transactionDto.getSourceAccount(),AccountType.CHECKING.toString());
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case WITHDRAW:
                 this.generalValidations(transactionDto, transactionType);
+
                 break;
+            case RESCUE:
+                validateIfAccountTypeForTransactionType(transactionDto.getSourceAccount(),AccountType.SAVINGS.toString());
+                validateIfAccountTypeForTransactionType(transactionDto.getTargetAccount(),AccountType.CHECKING.toString());
+                this.generalValidations(transactionDto, transactionType);
+                this.validateIfAssociateIdAndAgencyIdAreEqualsForRescue(transactionDto);
         }
         return this.executeTransaction(transactionType,transactionDto);
     }
@@ -68,6 +73,10 @@ public class TransactionService {
         this.validateQuantityTransacions(transactionType, transactionDto.getSourceAccount());
         this.validateValueForTransaction(transactionDto);
         this.validateBalanceAvaliability(transactionDto.getSourceAccount(), transactionDto.getValue());
+    }
+
+    private void validateIfAssociateIdAndAgencyIdAreEqualsForRescue(TransactionDto transactionDto) {
+        if(!this.transactionRepository.validateIfAssociateIdAndAgencyIdAreEqualsForRescue(transactionDto.getSourceAccount(),transactionDto.getTargetAccount()));
     }
 
 
@@ -95,20 +104,28 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setDate(new Date());
         transaction.setValue(new BigDecimal(String.valueOf(transactionDto.getValue())).setScale(2, RoundingMode.HALF_EVEN));
-        if (Objects.nonNull(transactionDto.getTargetAccount()) && (transactionType.equals(TransactionType.DEPOSIT) ||
-                transactionType.equals(TransactionType.TRANSFER))) {
+
+        if ((!transactionType.equals(TransactionType.WITHDRAW))) {
             Account targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
             transaction.setTargetAccount(targetAccount);
             this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
         }
-        if (Objects.nonNull(transactionDto.getSourceAccount()) && (transactionType.equals(TransactionType.WITHDRAW) || transactionType.equals(TransactionType.TRANSFER))) {
+        if ((!transactionType.equals(TransactionType.DEPOSIT))) {
             Account sourceAccount = this.accountService.getAccountById(transactionDto.getSourceAccount());
             transaction.setSourceAccount(this.accountService.getAccountById(transactionDto.getSourceAccount()));
             this.accountService.updateBalance(sourceAccount.getId(), transactionDto.getValue().multiply(new BigDecimal(-1)));
         }
+
         transaction.setTransactionType(transactionType.toString());
         this.transactionRepository.save(transaction);
         return transaction;
+    }
+
+
+    private void validateIfAccountTypeForTransactionType(Long accountId, String accountType) {
+        if (!this.transactionRepository.validateIfAccountTypeForTransactionType(accountId).equals(accountType)) {
+            throw new RuntimeException("Conta '".concat(accountId.toString()).concat("' possui um tipo inválido para essa transação "));
+        }
     }
 
     public Transaction getTransctionById(Long id) {
@@ -131,7 +148,7 @@ public class TransactionService {
         }
     }
 
-    public List<Transaction> getAllTransctions(Pageable pageable) {
-        return this.transactionRepository.findAll((Sort) pageable);
+    public List<Transaction> getAllTransctions() {
+        return this.transactionRepository.findAll();
     }
 }

@@ -1,4 +1,4 @@
-package com.cashMachine.transaction;
+package com.cashMachine.transaction.dtos;
 
 import lombok.Getter;
 

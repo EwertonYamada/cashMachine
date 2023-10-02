@@ -45,8 +45,8 @@ public class AgencyService {
         }
     }
 
-    public List<Agency> getAllAgencies(Pageable pageable) {
-        return this.agencyRepository.findAll((Sort) pageable);
+    public List<Agency> getAllAgencies() {
+        return this.agencyRepository.findAll();
     }
 
 }

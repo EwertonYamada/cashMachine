@@ -22,9 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                                 @Param("transactionDate") Date transactionDate,
                                                 @Param("sourceAccountId") Long sourceAccountId);
 
-    @Query(nativeQuery = true,
-            value = "SELECT ")
-    boolean validateDailyTransactionLimit(BigDecimal value, Long sourceAccount);
 
     @Query(nativeQuery = true,
             value = "SELECT COALESCE(SUM(t.transaction_value), 0) " +
@@ -32,15 +29,47 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                     "WHERE t.source_account = :sourceAccountId " +
                     "   AND t.transaction_type IN('WITHDRAW', 'TRANSFER') " +
                     "   AND t.transaction_date > :currentDate ")
-    BigDecimal getExitTransactions(@Param("sourceAccountId") Long sourceAccountId, @Param("currentDate") Date currentDate);
+    BigDecimal getExitTransactions(@Param("sourceAccountId") Long sourceAccountId,
+                                   @Param("currentDate") Date currentDate);
+
 
     @Query(nativeQuery = true,
-            value = "SELECT b.full_balance_transaction " +
-                    "FROM bank b " +
-                    "JOIN agency a " +
-                    "   ON a.bank_id = b.id  " +
-                    "JOIN account a2 " +
-                    "   ON a2.agency_id = a.id  " +
-                    "WHERE a2.id = :account ")
+            value = " SELECT b.full_balance_transaction " +
+                    " FROM bank b " +
+                    " JOIN agency a " +
+                    "    ON a.bank_id = b.id  " +
+                    " JOIN account a2 " +
+                    "    ON a2.agency_id = a.id  " +
+                    " WHERE a2.id = :account ")
     BigDecimal getFullBalanceTransactionByAccountId(@Param("account") Long account);
+
+
+    @Query(nativeQuery = true,
+            value = "   SELECT account_type " +
+                    "   FROM account a " +
+                    "   WHERE a.id = :accountId ")
+    String validateIfAccountTypeForTransactionType(@Param("accountId") Long accountId);
+
+
+    @Query(nativeQuery = true,
+            value = "SELECT  " +
+                    "CASE WHEN  " +
+                    "    ( " +
+                    "    ( (SELECT associate_id FROM account a  " +
+                    "    WHERE id = :sourceAccountId) " +
+                    "    = " +
+                    "    (SELECT associate_id  FROM account a  " +
+                    "    WHERE id = :targetAccountId) ) " +
+                    "    AND  " +
+                    "    ((SELECT agency_id FROM account a  " +
+                    "    WHERE id = :sourceAccountId) " +
+                    "    = " +
+                    "    (SELECT agency_id FROM account a  " +
+                    "    WHERE id = :targetAccountId) ) " +
+                    "    ) " +
+                    "    THEN TRUE  " +
+                    "    ELSE  FALSE  " +
+                    "END ")
+    boolean validateIfAssociateIdAndAgencyIdAreEqualsForRescue(@Param("sourceAccountId") Long sourceAccountId,
+                                                               @Param("targetAccountId") Long targetAccountId);
 }

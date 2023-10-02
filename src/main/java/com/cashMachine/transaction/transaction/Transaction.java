@@ -14,6 +14,7 @@ import java.util.Date;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
     @Column(name = "transaction_type")
     private String transactionType;
@@ -22,9 +23,9 @@ public class Transaction {
     @Column(name = "transaction_date")
     private Date date;
     @JoinColumn(name = "source_account")
-    @OneToOne
+    @ManyToOne
     private Account sourceAccount;
     @JoinColumn(name = "target_account")
-    @OneToOne
+    @ManyToOne
     private Account targetAccount;
 }

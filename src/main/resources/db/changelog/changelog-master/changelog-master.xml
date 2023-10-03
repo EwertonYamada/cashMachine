@@ -16,4 +16,31 @@
 <!--            <column name="teste" type="VARCHAR(36)"/>-->
 <!--        </addColumn>-->
 <!--    </changeSet>-->
+
+    <changeSet id="3" author="michel.junior@sgisistemas.com.br">
+    <preConditions onFail="MARK_RAN">
+        <not>
+            <columnExists columnName="type_account" tableName="account"/>
+        </not>
+    </preConditions>
+    <addColumn tableName="account">
+        <column name="type_account" type="VARCHAR(255)"/>
+    </addColumn>
+    </changeSet>
+
+    <changeSet id="id sequencial" author="seu.email@sgisistemas.com.br">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="t">
+                SELECT COUNT(*) > 0
+                FROM account a
+                WHERE a.type_account is null
+            </sqlCheck>
+        </preConditions>
+        <comment>Setando as contas existentes como Conta Corrente</comment>
+        <sql>
+            UPDATE account a
+            SET type_account = 'CHECKING'
+            WHERE a.type_account IS null
+        </sql>
+    </changeSet>
 </databaseChangeLog>

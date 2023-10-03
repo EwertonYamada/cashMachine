@@ -3,6 +3,7 @@ package com.cashMachine.account.accountAPIs;
 import com.cashMachine.account.account.Account;
 import com.cashMachine.account.accountServices.AccountService;
 import com.cashMachine.account.dtos.AccountDto;
+import com.cashMachine.account.enums.AccountType;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,19 @@ public class AccountAPI {
         this.accountService = accountService;
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<Account> createAccount(@RequestBody AccountDto accountDto) {
-        return ResponseEntity.ok(this.accountService.createAccount(accountDto));
+    @PostMapping("/new-saving")
+    public ResponseEntity<Account> createAccountSaving(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.SAVING));
+    }
+
+    @PostMapping("/new-checking")
+    public ResponseEntity<Account> createAccountChecking(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.CHECKING));
+    }
+
+    @PostMapping("/new-both")
+    public ResponseEntity<Account> createAccountBoth(@RequestBody AccountDto accountDto) {
+        return ResponseEntity.ok(this.accountService.createAccount(accountDto, AccountType.BOTH));
     }
 
     @GetMapping("/{id}")
@@ -31,8 +42,7 @@ public class AccountAPI {
     }
 
     @GetMapping("/all-accounts")
-    public ResponseEntity<List<Account>> getAllAgencies(@PageableDefault(page = 0, size = 10000, sort = "number",
-            direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(this.accountService.getAllAccounts(pageable));
+    public ResponseEntity<List<Account>> getAllAgencies() {
+        return ResponseEntity.ok(this.accountService.getAllAccounts());
     }
 }

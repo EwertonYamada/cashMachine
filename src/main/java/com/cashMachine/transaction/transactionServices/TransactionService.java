@@ -46,7 +46,8 @@ public class TransactionService {
                 this.generalValidations(transactionDto, transactionType);
                 break;
             case RESCUE:
-                this.validateBalanceAvaliability(transactionDto.getSourceAccount(), transactionDto.getValue());
+                this.generalValidations(transactionDto, transactionType);
+                this.validateTargetAccountForRescue(transactionDto);
                 break;
         }
         return this.executeTransaction(transactionType,transactionDto);
@@ -110,7 +111,7 @@ public class TransactionService {
     }
 
     private void lookForSavingAccount(Transaction transaction) {
-        if (transaction.getSourceAccount().getTypeAccount().equals(AccountType.SAVING.toString()) && transaction.getTransactionType().equals(TransactionType.TRANSFER.toString())) {
+        if (transaction.getSourceAccount().getTypeAccount().equals(AccountType.SAVING.toString())) {
             throw new RuntimeException("Não é possivel fazer uma transferencia de uma conta do tipo poupança!");
         }
     }
@@ -129,26 +130,23 @@ public class TransactionService {
 
     private Account lookForTargetAccount(TransactionDto transactionDto, TransactionType transactionType) {
         Account targetAccount = null;
-        if (Objects.nonNull(transactionDto.getTargetAccount())) {
-            if (transactionType.equals(TransactionType.DEPOSIT) || transactionType.equals(TransactionType.TRANSFER)) {
+        if (Objects.nonNull(transactionDto.getTargetAccount()) && (transactionType.equals(TransactionType.DEPOSIT) || transactionType.equals(TransactionType.TRANSFER) || transactionType.equals(TransactionType.RESCUE))) {
                 targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
                 this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
-            }
-            if (transactionType.equals(TransactionType.RESCUE)) {
-                targetAccount = this.validateTargetAccountForRescue(transactionDto.getSourceAccount());
-                this.accountService.updateBalance(targetAccount.getId(), transactionDto.getValue());
-            }
         }
         return targetAccount;
     }
 
-    private Account validateTargetAccountForRescue(Long sourceAccountId) {
-        Account sourceAccount = this.accountService.getAccountById(sourceAccountId);
-        Account targetAccount = this.accountService.findCheckingAccountByAssoiciateAndAgency(sourceAccount);
-        if (Objects.isNull(targetAccount)) {
+    private void validateTargetAccountForRescue(TransactionDto transactionDto) {
+        Account sourceAccount = this.accountService.getAccountById(transactionDto.getSourceAccount());
+        Account correctAccount = this.accountService.findCheckingAccountByAssoiciateAndAgency(sourceAccount);
+        Account targetAccount = this.accountService.getAccountById(transactionDto.getTargetAccount());
+        if (Objects.isNull(correctAccount)) {
             throw new RuntimeException("Não foi possível achar uma conta destino para enviar o dinheiro do resgate!");
         }
-        return targetAccount;
+        if (!targetAccount.equals(correctAccount)) {
+            throw new RuntimeException("A conta: ".concat(targetAccount.getId().toString()).concat(" não é a conta correta para fazere o resgate da conta poupança: ".concat(correctAccount.getId().toString())));
+        }
     }
 
     public Transaction getTransctionById(Long id) {
